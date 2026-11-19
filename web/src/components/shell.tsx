@@ -97,7 +97,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <span>Planning review only.</span>
         <span className="flex gap-4">
           <Link href="/#workflow" className="text-pine">
-            How to use this
+            How a case moves
           </Link>
           <Link href="/" className="text-pine">
             About Grid Prime

@@ -6,7 +6,6 @@ export const WORKFLOW = [
     seat: "Anyone",
     where: "Sign in",
     title: "Open a case and take a seat",
-    text: "Sign in with your name, then choose Analyst, Reviewer, Program manager, or Viewer. The reference case already holds three research zones and a labeled synthetic series. An empty case starts with no zones and no hours. You can change seat later. The file stays.",
     short: "Name yourself, choose a seat, and open the reference case or an empty one.",
     href: "/login",
   },
@@ -15,7 +14,6 @@ export const WORKFLOW = [
     seat: "Analyst",
     where: "Model",
     title: "File only what you can describe",
-    text: "Pull public EIA hourly demand, or validate a JSON series and file it as synthetic. Name a zone, then state a resource and a contingency. A forecast needs 48 consecutive hours in that zone. A viewer’s seat leaves every write disabled.",
     short: "File public or synthetic hours, then state the zones, the transfers, the resources, and the contingencies.",
     href: "/model",
   },
@@ -24,7 +22,6 @@ export const WORKFLOW = [
     seat: "Analyst",
     where: "Predict",
     title: "Produce an outlook, then test it",
-    text: "File a demand forecast: seasonal naive or exponential smoothing, one to twenty-four hours ahead. Declare one stress event when you want a shock on the record. Score the last day on Holdout before treating the outlook as skill.",
     short: "File an outlook, add one stress event, and score the last day before calling it skill.",
     href: "/predict",
   },
@@ -33,7 +30,6 @@ export const WORKFLOW = [
     seat: "Analyst",
     where: "Optimize",
     title: "Keep only a portfolio that fits",
-    text: "Enter a budget, existing capacity, peak demand, and the planning margin you are willing to require. Compare the six options. When one meets those constraints, send the least-cost plan for review. When none does, revise the inputs. An infeasible result stays infeasible.",
     short: "Compare portfolios inside your budget and reserve, then send the least-cost plan.",
     href: "/optimize",
   },
@@ -42,7 +38,6 @@ export const WORKFLOW = [
     seat: "Reviewer",
     where: "Deliver",
     title: "Accept or return, and write why",
-    text: "Change seat to Reviewer. Open Deliver, then Review. Accept or return the submitted plan. The reason stays on the decision. Approval here is a planning review.",
     short: "Change to Reviewer, then accept or return the plan and leave the reason on it.",
     href: "/deliver",
   },
@@ -51,7 +46,6 @@ export const WORKFLOW = [
     seat: "Program manager",
     where: "Deliver",
     title: "Record what was observed",
-    text: "After a plan is accepted, change seat to Program manager. Open Outcomes and write what happened. Anyone can read Situation, ask Explain to describe a number already stored on a run, or open the brief from Record.",
     short: "After acceptance, record the outcome. Anyone may read the situation or the brief.",
     href: "/deliver",
   },
@@ -62,14 +56,11 @@ export function PublicWorkflow() {
     <section id="workflow" className="border-t border-line bg-sheet">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-[0.72fr_1.28fr] lg:py-20">
         <div className="lg:sticky lg:top-8 lg:self-start">
-          <p className="kicker">How to use it</p>
-          <h2 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">
-            One case. Four stages. Three handoffs.
-          </h2>
+          <p className="kicker">Who does what</p>
+          <h2 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">One file, passed between seats.</h2>
           <p className="mt-4 leading-7 text-muted">
-            An analyst files the record and sends a plan. A reviewer decides and writes the reason. A program manager
-            records what happened afterward. A viewer can follow every step. The case refuses every change from that
-            seat.
+            An analyst files the evidence. A reviewer accepts or returns it and writes why. A program manager records
+            what happened. A viewer can read every page and change none of them.
           </p>
         </div>
         <ol>
@@ -81,7 +72,7 @@ export function PublicWorkflow() {
                   {step.seat} · {step.where}
                 </p>
                 <h3 className="mt-1 font-serif text-2xl">{step.title}</h3>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-muted">{step.text}</p>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-muted">{step.short}</p>
               </div>
             </li>
           ))}
