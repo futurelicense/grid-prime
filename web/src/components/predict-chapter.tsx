@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { fmt } from "@/lib/format";
 import { inZone } from "@/lib/narrative";
-import type { ForecastResult, Run, ScenarioResult } from "@/lib/types";
+import type { Explanation } from "@/lib/explain";
+import type { ForecastResult, Reading, Run, ScenarioResult } from "@/lib/types";
 import { isForecast, isScenario, isValidation } from "@/lib/types";
 import { Chapter } from "./chapter";
 import { Field, FormError, Submit, useFormError } from "./forms";
@@ -17,7 +18,7 @@ const SECTIONS = [
 ];
 
 export function PredictChapter() {
-  const { payload, zone, mutate } = useWorkspace();
+  const { payload, zone, mutate, refresh } = useWorkspace();
   const [section, setSection] = useState("forecast");
   if (!payload) return <p className="text-muted">Opening the case file.</p>;
   const canWrite = payload.session.role !== "Viewer";
@@ -31,13 +32,19 @@ export function PredictChapter() {
     <Chapter
       number="02"
       title="Predict"
-      lede="The case engine computes the numbers. A later explanation may describe them. It may not replace them."
+      lede="The case engine computes the outlook. Groq may read that stored forecast beside it. Groq does not produce the hours."
       sections={SECTIONS}
       current={section}
       onChange={setSection}
     >
       {section === "forecast" ? (
-        <ForecastForm canWrite={canWrite} regions={regions} run={forecast} mutate={mutate} />
+        <ForecastForm
+          canWrite={canWrite}
+          groq={payload.capabilities.groq}
+          regions={regions}
+          run={forecast}
+          refresh={refresh}
+        />
       ) : null}
       {section === "stress" ? (
         <StressForm canWrite={canWrite} regions={regions} run={scenario} mutate={mutate} />
@@ -51,14 +58,16 @@ export function PredictChapter() {
 
 function ForecastForm({
   canWrite,
+  groq,
   regions,
   run,
-  mutate,
+  refresh,
 }: {
   canWrite: boolean;
+  groq: boolean;
   regions: string[];
   run?: Run;
-  mutate: (url: string, body?: unknown) => Promise<void>;
+  refresh: () => Promise<void>;
 }) {
   const form = useFormError();
   const result = run && isForecast(run.result) ? run.result : null;
@@ -69,13 +78,31 @@ function ForecastForm({
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
-          form.run(() =>
-            mutate("/api/v2/forecast-runs", {
-              region: data.get("region"),
-              method: data.get("method"),
-              horizon: Number(data.get("horizon")),
-            }),
-          );
+          form.run(async () => {
+            const response = await fetch("/api/v2/forecast-runs", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                region: data.get("region"),
+                method: data.get("method"),
+                horizon: Number(data.get("horizon")),
+              }),
+            });
+            const body = await response.json();
+            if (!response.ok) throw new Error(body.error || "The forecast could not be filed.");
+            if (body.runId) {
+              const explained = await fetch("/api/v2/ai/explain", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ runId: body.runId }),
+              });
+              if (!explained.ok) {
+                const reason = await explained.json().catch(() => ({}));
+                throw new Error(reason.error || "The outlook was filed. Groq could not read it.");
+              }
+            }
+            await refresh();
+          });
         }}
       >
         <h2 className="font-serif text-3xl">Demand outlook</h2>
@@ -96,12 +123,26 @@ function ForecastForm({
         <Submit disabled={!canWrite || !regions.length}>File the forecast</Submit>
         <FormError message={form.message} />
       </form>
-      {result && run ? <ForecastReading run={run} result={result} /> : <p className="text-sm text-muted">No forecast in this reading yet.</p>}
+      {result && run ? (
+        <ForecastReading run={run} result={result} groq={groq} refresh={refresh} />
+      ) : (
+        <p className="text-sm text-muted">No forecast in this reading yet.</p>
+      )}
     </div>
   );
 }
 
-function ForecastReading({ run, result }: { run: Run; result: ForecastResult }) {
+function ForecastReading({
+  run,
+  result,
+  groq,
+  refresh,
+}: {
+  run: Run;
+  result: ForecastResult;
+  groq: boolean;
+  refresh: () => Promise<void>;
+}) {
   return (
     <div className="border-t border-line pt-6">
       <p className="font-serif text-2xl">
@@ -139,6 +180,66 @@ function ForecastReading({ run, result }: { run: Run; result: ForecastResult }) 
           </tbody>
         </table>
       </div>
+      <AlignedReading runId={run.id} reading={run.reading} groq={groq} refresh={refresh} />
+    </div>
+  );
+}
+
+function AlignedReading({
+  runId,
+  reading,
+  groq,
+  refresh,
+}: {
+  runId: string;
+  reading?: Reading;
+  groq: boolean;
+  refresh: () => Promise<void>;
+}) {
+  const form = useFormError();
+  const [live, setLive] = useState<Explanation | null>(null);
+  const shown = live ?? reading ?? null;
+  return (
+    <div className="mt-8 max-w-xl border-t border-line pt-6">
+      <h3 className="font-serif text-2xl">Reading of this outlook</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">
+        {groq
+          ? "Groq reads the hours this engine stored. A number that is not in the forecast is refused, and the local reading is kept."
+          : "No Groq key is on the server. The reading is written from the stored forecast on this machine."}
+      </p>
+      {shown ? (
+        <div className="mt-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted">
+            {shown.mode === "groq" ? "Groq, aligned to this run" : shown.mode === "fallback" ? "Local reading" : "Local reading"}
+            {shown.abstained ? " · abstained" : ""}
+          </p>
+          <p className="mt-3 leading-7">{shown.summary}</p>
+          {shown.note ? <p className="mt-2 text-sm text-clay">{shown.note}</p> : null}
+          <p className="mt-3 text-sm text-muted">{shown.limits}</p>
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-muted">This outlook has not been read yet.</p>
+      )}
+      <button
+        type="button"
+        className="btn mt-4"
+        onClick={() =>
+          form.run(async () => {
+            const response = await fetch("/api/v2/ai/explain", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ runId }),
+            });
+            const body = await response.json();
+            if (!response.ok) throw new Error(body.error || "This outlook could not be read.");
+            setLive(body.explanation);
+            await refresh();
+          })
+        }
+      >
+        {shown ? "Read it again" : "Read this outlook"}
+      </button>
+      <FormError message={form.message} />
     </div>
   );
 }

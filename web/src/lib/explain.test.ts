@@ -17,6 +17,7 @@ const run: Run = {
 test("local forecast explanation cites stored numbers", () => {
   const explanation = localExplanation(run);
   assert.equal(explanation.mode, "local");
+  assert.match(explanation.summary, /Seasonal naive/);
   assert.equal(claimsMatchRun(run, explanation.claims), true);
 });
 

@@ -163,6 +163,7 @@ export function runForecast(workspace: Workspace, role: Role, region: string, me
     sources: [...new Set(rows.map((row) => row.source))],
   });
   audit(workspace, role, `Forecast run ${id}`);
+  return id;
 }
 
 export function runScenario(

@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     if (session.role === "Viewer") return { explanation: localExplanation(run) };
     const explanation = await explainRun(run);
     await updateWorkspace(session.caseId, (item) => {
+      const stored = item.runs.find((candidate) => candidate.id === runId);
+      if (stored) stored.reading = explanation;
       item.audit.unshift({
         time: new Date().toISOString(),
         role: session.role,

@@ -1,14 +1,7 @@
-import type { ForecastResult, OptimizationResult, Run, ScenarioResult } from "./types";
+import type { ForecastResult, OptimizationResult, Reading, Run, ScenarioResult } from "./types";
 import { isForecast, isOptimization, isScenario } from "./types";
 
-export type Explanation = {
-  summary: string;
-  claims: { metric: string; value: number }[];
-  abstained: boolean;
-  limits: string;
-  mode: "local" | "groq" | "fallback";
-  note?: string;
-};
+export type Explanation = Reading;
 
 const LIMITS =
   "Advisory draft. Independent review is required. This is not a dispatch instruction or a certified adequacy study.";
@@ -16,11 +9,16 @@ const LIMITS =
 export function localExplanation(run: Run): Explanation {
   if (isForecast(run.result)) {
     const peak = Math.max(...run.result.values);
+    const method = String(run.inputs.method || "The stored method");
+    const first = run.result.values[0];
     return {
-      summary: `Peak projected demand is ${round(peak)} MW. Historical residual MAE is ${round(run.result.mae)} MW.`,
+      summary: `${method} filed ${run.result.values.length} hours. Peak projected demand is ${round(peak)} MW. Historical residual MAE is ${round(run.result.mae)} MW. Hour 1 is ${round(first)} MW, and its stored band runs from ${round(run.result.low[0])} to ${round(run.result.high[0])} MW.`,
       claims: [
         { metric: "Peak forecast MW", value: peak },
         { metric: "Residual MAE MW", value: run.result.mae },
+        { metric: "Hour 1 MW", value: first },
+        { metric: "Hour 1 lower MW", value: run.result.low[0] },
+        { metric: "Hour 1 upper MW", value: run.result.high[0] },
       ],
       abstained: false,
       limits: LIMITS,
@@ -119,10 +117,9 @@ export async function explainRun(run: Run): Promise<Explanation> {
         messages: [
           {
             role: "system",
-            content:
-              "You explain one stored GRID-PRIME analytical run for a human reviewer. Use only numbers present in the JSON. Do not invent measurements, dispatch orders, or outage-avoided claims. Return JSON with keys summary (string), claims (array of {metric, value} where value is a number copied from the JSON), abstained (boolean), limits (string). If you cannot cite a number, set abstained true and explain why in summary.",
+            content: instructions(run),
           },
-          { role: "user", content: JSON.stringify(payload) },
+          { role: "user", content: JSON.stringify({ ...payload, alignment: alignment(run) }) },
         ],
       }),
     });
@@ -163,14 +160,37 @@ export async function explainRun(run: Run): Promise<Explanation> {
   }
 }
 
+function instructions(run: Run) {
+  const shared =
+    "Use only numbers present in the JSON. Do not invent measurements, dispatch orders, or outage-avoided claims. Return JSON with keys summary (string), claims (array of {metric, value} where value is a number copied from the JSON), abstained (boolean), limits (string). If you cannot cite a number, set abstained true and explain why in summary.";
+  if (run.type === "forecast") {
+    return `You read a demand forecast that GRID-CASE-1.0 already computed. You do not forecast or replace a number. Seasonal naive copies each hour from 24 hours earlier. Exponential smoothing sets every future hour to one stored level, updated as 0.3 times each observation plus 0.7 times the prior level. The band is the point plus the 5th and 95th percentile of past residuals, floored at zero, and may sit above or below the point. Explain this run's method, horizon, peak, residual MAE, and the first hour's point and band. ${shared}`;
+  }
+  return `You explain one stored GRID-PRIME analytical run for a human reviewer. ${shared}`;
+}
+
+function alignment(run: Run) {
+  if (!isForecast(run.result)) return null;
+  const method = String(run.inputs.method);
+  return {
+    engine: run.engine,
+    method,
+    horizonHours: run.result.values.length,
+    rule:
+      method === "Seasonal naive"
+        ? "Each forecast hour copies the load from 24 hours earlier."
+        : "Every forecast hour is the final smoothed level.",
+  };
+}
+
 function shrink(result: ForecastResult | ScenarioResult | OptimizationResult | Run["result"]) {
   if (isForecast(result)) {
     return {
       peak: Math.max(...result.values),
       mae: result.mae,
-      first: result.values[0],
-      low: result.low[0],
-      high: result.high[0],
+      values: result.values,
+      low: result.low,
+      high: result.high,
     };
   }
   if (isScenario(result)) {

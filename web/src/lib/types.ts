@@ -48,6 +48,15 @@ export type Link = {
 
 export type RunType = "forecast" | "scenario" | "optimization" | "validation";
 
+export type Reading = {
+  summary: string;
+  claims: { metric: string; value: number }[];
+  abstained: boolean;
+  limits: string;
+  mode: "local" | "groq" | "fallback";
+  note?: string;
+};
+
 export type Run = {
   id: string;
   type: RunType;
@@ -57,6 +66,7 @@ export type Run = {
   time: string;
   engine: string;
   sources: string[];
+  reading?: Reading;
 };
 
 export type ForecastResult = {
