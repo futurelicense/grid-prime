@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useWorkspace } from "./providers";
+import { TourLaunch } from "./tour";
 
 const STAGES = [
   ["/model", "01", "Model", "System"],
@@ -96,9 +97,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <footer className="mx-auto flex max-w-5xl flex-wrap justify-between gap-3 px-6 pb-10 text-sm text-muted">
         <span>Planning review only.</span>
         <span className="flex gap-4">
-          <Link href="/#workflow" className="text-pine">
-            How a case moves
-          </Link>
+          <TourLaunch label="Take the tour" variant="link" entered />
           <Link href="/" className="text-pine">
             About Grid Prime
           </Link>

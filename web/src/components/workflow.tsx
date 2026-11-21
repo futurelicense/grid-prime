@@ -57,10 +57,11 @@ export function PublicWorkflow() {
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-[0.72fr_1.28fr] lg:py-20">
         <div className="lg:sticky lg:top-8 lg:self-start">
           <p className="kicker">Who does what</p>
-          <h2 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">One file, passed between seats.</h2>
+          <h2 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">Four people can share the file.</h2>
           <p className="mt-4 leading-7 text-muted">
-            An analyst files the evidence. A reviewer accepts or returns it and writes why. A program manager records
-            what happened. A viewer can read every page and change none of them.
+            The analyst files the hours, the forecast, and the options. The reviewer accepts or returns the plan and
+            writes why. The program manager records what happened later. The viewer can read every page and cannot
+            change the file.
           </p>
         </div>
         <ol>

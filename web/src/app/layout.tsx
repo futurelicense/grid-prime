@@ -8,7 +8,7 @@ const sans = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
   title: "GRID-PRIME",
-  description: "A planning case file for grid reliability. Public and synthetic evidence, human review, no operational authority.",
+  description: "Check a grid plan before anyone spends the money. File the hours, forecast the next day, test the budget, and keep the decision a person signed.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

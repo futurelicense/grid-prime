@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { caseFlags, caseStages, nextStep, workflowCursor } from "@/lib/narrative";
 import { useWorkspace } from "./providers";
+import { TourLaunch } from "./tour";
 import { CaseWorkflow } from "./workflow";
 
 export function CaseCover() {
@@ -20,12 +21,15 @@ export function CaseCover() {
         {payload.session.name} · {payload.workspace.label}
       </p>
       <h1 className="mt-3 font-serif text-5xl leading-[0.95] sm:text-6xl">
-        Evidence moves through four stages before it becomes a decision.
+        One file, from the hours to the signature.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
-        Model the system you can actually describe. Predict from that record. Optimize only inside the constraints you
-        encoded. Deliver the result to a person who has to write the reason.
+        File the region and the demand. Forecast the next day. Keep the option that fits the budget. A person accepts
+        or returns it and writes why.
       </p>
+      <div className="mt-6">
+        <TourLaunch label="Take the tour" variant="quiet" entered />
+      </div>
       <p className="mt-4 text-sm text-muted">
         {`${synthetic.toLocaleString("en-US")} synthetic hours on file${
           published ? ` · ${published.toLocaleString("en-US")} public hours` : ""
