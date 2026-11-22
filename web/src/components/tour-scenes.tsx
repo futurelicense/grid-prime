@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useId, useState, type ReactNode } from "react";
 
 const INK = "#1d1a16";
 const MUTED = "#655f56";
@@ -13,7 +15,7 @@ function demand(hour: number) {
 
 export function TourScene({ step }: { step: number }) {
   return (
-    <div className="overflow-hidden border border-line bg-paper p-3 sm:p-4" aria-hidden>
+    <div className="overflow-hidden rounded-lg border border-line bg-paper p-3 sm:p-4">
       {step === 0 ? <Overview /> : null}
       {step === 1 ? <Start /> : null}
       {step === 2 ? <ModelScene /> : null}
@@ -111,7 +113,7 @@ function ModelScene() {
 
 function PredictScene() {
   const history = Array.from({ length: 24 }, (_, hour) => demand(hour));
-  const future = Array.from({ length: 24 }, (_, hour) => demand(hour));
+  const future = Array.from({ length: 25 }, (_, hour) => demand(hour + 23));
   const width = 520;
   const height = 168;
   const xAt = (index: number) => 28 + index * ((width - 40) / 47);
@@ -126,7 +128,7 @@ function PredictScene() {
       .join(" ") +
     " " +
     future
-      .map((value, index) => `L ${xAt(46 - index)} ${yAt(future[23 - index] - 7)}`)
+      .map((value, index) => `L ${xAt(47 - index)} ${yAt(future[24 - index] - 7)}`)
       .join(" ") +
     " Z";
 
@@ -150,44 +152,42 @@ function PredictScene() {
       <div className="mt-1 flex flex-wrap gap-4 px-2 pb-1 text-xs text-muted">
         <span>Solid line · hours on the file</span>
         <span className="text-pine">Dashed line · the next day</span>
-        <span>Shade · the stored band</span>
+        <span>Shade · uncertainty band</span>
       </div>
     </div>
   );
 }
 
 function OptimizeScene() {
+  const [budget, setBudget] = useState(16);
+  const budgetId = useId();
   const rows = [
-    { name: "Upgrade", mw: "30 MW", cost: "$7m", mark: "Short of the reserve", tone: "muted" },
-    { name: "Flexibility", mw: "40 MW", cost: "$8m", mark: "Kept", tone: "pine" },
-    { name: "Storage", mw: "55 MW", cost: "$18m", mark: "Over the budget", tone: "clay" },
-    { name: "Firm capacity", mw: "90 MW", cost: "$22m", mark: "Over the budget", tone: "clay" },
-  ] as const;
+    { name: "Upgrade", mw: 30, cost: 7 },
+    { name: "Flexibility", mw: 40, cost: 8 },
+    { name: "Storage", mw: 55, cost: 18 },
+    { name: "Firm capacity", mw: 90, cost: 22 },
+  ];
+  const selected = rows.find(row => row.mw >= 40 && row.cost <= budget);
   return (
     <div className="bg-sheet p-3">
-      <div className="flex flex-wrap items-end justify-between gap-2 border-b border-line pb-2 text-sm">
-        <p>Need 40 MW</p>
-        <p className="text-muted">Budget stops at $16m</p>
+      <div className="border-b border-line pb-3 text-sm">
+        <div className="flex flex-wrap justify-between gap-2"><label htmlFor={budgetId} className="font-semibold">Try a budget</label><span>${budget}m · Need 40 MW</span></div>
+        <input id={budgetId} type="range" min="0" max="24" step="2" value={budget} onChange={event => setBudget(Number(event.target.value))} aria-valuetext={`${budget} million dollars`} className="mt-3 min-h-8 w-full accent-pine" />
+        <div className="flex justify-between text-sm text-muted"><span>$0m</span><span>$24m</span></div>
       </div>
-      <div className="mt-3 space-y-2">
-        {rows.map((row) => (
-          <div
-            key={row.name}
-            className={`flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-2 py-2 text-sm ${
-              row.tone === "pine" ? "bg-moss" : ""
-            }`}
-          >
-            <span className="font-serif text-lg">{row.name}</span>
-            <span>
-              {row.mw} · {row.cost}
-            </span>
-            <span className={row.tone === "clay" ? "text-clay" : row.tone === "pine" ? "text-pine" : "text-muted"}>
-              {row.mark}
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="mt-3 text-xs text-muted">An example of the rule. The case uses the budget and reserve you enter.</p>
+      <ul className="mt-3 space-y-2" aria-label="Illustrative resource options">
+        {rows.map(row => {
+          const feasible = row.mw >= 40 && row.cost <= budget;
+          const chosen = row === selected;
+          const mark = row.mw < 40 ? "Below reserve" : row.cost > budget ? "Over budget" : chosen ? "Least-cost fit" : "Feasible";
+          return <li key={row.name} className={`flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded px-2 py-2 text-sm ${chosen ? "bg-moss" : ""}`}>
+            <span className="font-semibold">{row.name}</span><span>{row.mw} MW · ${row.cost}m</span>
+            <span className={feasible ? "text-pine" : "text-clay"}>{mark}</span>
+          </li>;
+        })}
+      </ul>
+      <p role="status" aria-live="polite" aria-atomic="true" className="mt-3 border-t border-line pt-3 text-sm font-semibold text-pine">{selected ? `${selected.name} meets the 40 MW requirement for $${selected.cost}m.` : "No option meets both constraints. Try a budget of at least $8m."}</p>
+      <p className="mt-2 text-sm text-muted">Explore this example freely. It does not change your case.</p>
     </div>
   );
 }
