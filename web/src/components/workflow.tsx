@@ -86,8 +86,8 @@ export function PublicWorkflow() {
 export function CaseWorkflow({ current }: { current: number }) {
   return (
     <section className="mt-12">
-      <p className="kicker">How this file is meant to be used</p>
-      <h2 className="mt-2 font-serif text-3xl">Walk it in this order.</h2>
+      <p className="kicker">Who does each part</p>
+      <h2 className="mt-2 font-serif text-3xl">The same path, by seat.</h2>
       <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
         {current === 0
           ? "This case already has an accepted plan and a recorded outcome. You can reopen any stage."

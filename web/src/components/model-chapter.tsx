@@ -9,9 +9,9 @@ import { Field, FormError, QuietButton, Submit, useFormError } from "./forms";
 import { useWorkspace } from "./providers";
 
 const SECTIONS = [
-  { id: "sources", label: "Sources", detail: "Where a series is allowed to come from" },
-  { id: "series", label: "Series", detail: "The hours actually on the case" },
-  { id: "system", label: "System", detail: "Zones, transfers, resources, contingencies" },
+  { id: "sources", label: "Bring in hours", detail: "Public demand, or a series you mark as synthetic." },
+  { id: "series", label: "See the hours", detail: "The hours already on this file." },
+  { id: "system", label: "Name the zones", detail: "Zones, the transfers you state, resources, and contingencies." },
 ];
 
 export function ModelChapter() {
@@ -25,9 +25,9 @@ export function ModelChapter() {
 
   return (
     <Chapter
-      number="01"
-      title="Model"
-      lede="File the system before anyone forecasts it. A national total is not a feeder, and a synthetic hour is not telemetry."
+      number="1"
+      title="What was used"
+      lede="This step is the region and the hours. Nothing is forecast until those are on the file."
       sections={SECTIONS}
       current={section}
       onChange={setSection}

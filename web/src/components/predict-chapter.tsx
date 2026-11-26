@@ -12,9 +12,9 @@ import { useWorkspace } from "./providers";
 import { SeriesPlot } from "./series-plot";
 
 const SECTIONS = [
-  { id: "forecast", label: "Outlook", detail: "A short demand forecast with a residual band" },
-  { id: "stress", label: "Stress", detail: "One declared event, two thousand draws" },
-  { id: "holdout", label: "Holdout", detail: "The last day, scored only from earlier hours" },
+  { id: "forecast", label: "Forecast", detail: "The next day, with a band around each hour." },
+  { id: "stress", label: "Add a stress", detail: "One event you declare. The program runs two thousand draws." },
+  { id: "holdout", label: "Score the last day", detail: "The last day is hidden, then scored from the earlier hours." },
 ];
 
 export function PredictChapter() {
@@ -30,9 +30,9 @@ export function PredictChapter() {
 
   return (
     <Chapter
-      number="02"
-      title="Predict"
-      lede="The case engine computes the outlook. Groq may read that stored forecast beside it. Groq does not produce the hours."
+      number="2"
+      title="The next day"
+      lede="The program draws the forecast from the hours on the file. A reading can explain those hours. It does not replace them."
       sections={SECTIONS}
       current={section}
       onChange={setSection}

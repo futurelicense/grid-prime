@@ -11,6 +11,7 @@ export function CaseCover() {
   if (!payload) return <p className="text-muted">Opening the case file.</p>;
   const stages = caseStages(payload.workspace);
   const next = nextStep(payload.workspace);
+  const cursor = workflowCursor(payload.workspace);
   const flags = caseFlags(payload.workspace);
   const synthetic = payload.workspace.obs.filter((row) => row.licensingClass === "synthetic").length;
   const published = payload.workspace.obs.filter((row) => row.licensingClass === "public-api-key").length;
@@ -20,14 +21,35 @@ export function CaseCover() {
       <p className="kicker">
         {payload.session.name} · {payload.workspace.label}
       </p>
-      <h1 className="mt-3 font-serif text-5xl leading-[0.95] sm:text-6xl">
-        One file, from the hours to the signature.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
-        File the region and the demand. Forecast the next day. Keep the option that fits the budget. A person accepts
-        or returns it and writes why.
+      <h1 className="mt-3 font-serif text-5xl leading-[0.95] sm:text-6xl">Where this file stands.</h1>
+      <p className="mt-6 max-w-2xl text-lg leading-8">
+        {cursor === 0
+          ? "This file has a signed plan and a recorded outcome. Reopen any step."
+          : "Follow the four steps in order. The marked one is what this file is waiting on."}
       </p>
-      <div className="mt-6">
+      <ol className="mt-8 grid gap-3 sm:grid-cols-2">
+        {stages.map((stage) => {
+          const waiting = cursor !== 0 && stage.href === next.href;
+          return (
+            <li key={stage.href} className={`border p-4 ${waiting ? "border-pine bg-moss" : "border-line bg-sheet"}`}>
+              <p className="text-xs text-muted">
+                Step {stage.no.replace(/^0/, "")}
+                {waiting ? " · waiting here" : ""}
+              </p>
+              <h2 className="mt-1 font-serif text-2xl">{stage.name}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">{stage.duty}</p>
+              <p className="mt-2 text-sm leading-6">{stage.sentence}</p>
+              <Link href={stage.href} className="mt-3 inline-block text-sm text-pine">
+                Open
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link href={next.href} className="btn">
+          {next.label}
+        </Link>
         <TourLaunch label="Take the tour" variant="quiet" entered />
       </div>
       <p className="mt-4 text-sm text-muted">
@@ -45,26 +67,7 @@ export function CaseCover() {
           ))}
         </ul>
       ) : null}
-      <CaseWorkflow current={workflowCursor(payload.workspace)} />
-      <p className="kicker mt-14">What is already on file</p>
-      <ol className="mt-4 border-t border-line">
-        {stages.map((stage) => (
-          <li key={stage.href} className="grid gap-3 border-b border-line py-6 sm:grid-cols-[4rem_1fr_auto] sm:items-end">
-            <div className="font-serif text-3xl text-pine">{stage.no}</div>
-            <div>
-              <h2 className="font-serif text-3xl">{stage.name}</h2>
-              <p className="mt-1 text-sm text-muted">{stage.duty}</p>
-              <p className="mt-3 text-sm leading-6">{stage.sentence}</p>
-            </div>
-            <Link href={stage.href} className="text-sm text-pine">
-              Open
-            </Link>
-          </li>
-        ))}
-      </ol>
-      <Link href={next.href} className="btn mt-8">
-        {next.label}
-      </Link>
+      <CaseWorkflow current={cursor} />
     </div>
   );
 }

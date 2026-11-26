@@ -20,9 +20,9 @@ export function OptimizeChapter() {
 
   return (
     <Chapter
-      number="03"
-      title="Optimize"
-      lede="A portfolio is shown only when it meets the budget and the reserve. If none does, the case says so and leaves the constraints alone."
+      number="3"
+      title="What fits"
+      lede="An option stays only when it meets the budget and the reserve you set. If none does, the file says so."
       sections={[{ id: "portfolio", label: "Portfolio", detail: "Six planning options, exact comparison" }]}
       current="portfolio"
       onChange={() => undefined}

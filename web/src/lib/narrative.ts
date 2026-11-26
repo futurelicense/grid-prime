@@ -26,8 +26,8 @@ export function caseStages(workspace: Workspace) {
     {
       href: "/model",
       no: "01",
-      name: "Model",
-      duty: "Describe the system, the series, and the contingencies you are willing to state.",
+      name: "What was used",
+      duty: "The region and the hours.",
       sentence: workspace.obs.length
         ? `${workspace.regions.length} zones, ${workspace.obs.length} observations, and ${workspace.risks.length} contingencies are on file.`
         : "Nothing has been filed. Name a zone and bring in a series before asking for an outlook.",
@@ -35,22 +35,22 @@ export function caseStages(workspace: Workspace) {
     {
       href: "/predict",
       no: "02",
-      name: "Predict",
-      duty: "Produce a short-horizon demand outlook and a declared stress case.",
+      name: "The next day",
+      duty: "The forecast, and a score of the last day.",
       sentence: `${forecastText} ${scenarioText}`,
     },
     {
       href: "/optimize",
       no: "03",
-      name: "Optimize",
-      duty: "Compare resource packages that meet the budget and the planning reserve.",
+      name: "What fits",
+      duty: "The option that meets the budget and the reserve.",
       sentence: portfolioText,
     },
     {
       href: "/deliver",
       no: "04",
-      name: "Deliver",
-      duty: "A person accepts or returns the plan. The reason stays with the result.",
+      name: "Who agreed",
+      duty: "The decision, and what happened after it.",
       sentence: workspace.decisions.length
         ? `${workspace.decisions.length} decision${workspace.decisions.length === 1 ? "" : "s"} on the record${pending ? `, ${pending} still waiting` : ""}.`
         : "No plan has been sent for review.",
@@ -113,11 +113,11 @@ export function caseFlags(workspace: Workspace) {
 }
 
 export function nextStep(workspace: Workspace) {
-  if (!workspace.obs.length) return { href: "/model", label: "File the system" };
-  if (!workspace.runs.some((run) => run.type === "forecast")) return { href: "/predict", label: "File an outlook" };
-  if (!workspace.runs.some((run) => run.type === "optimization")) return { href: "/optimize", label: "Compare portfolios" };
-  if (!workspace.decisions.length) return { href: "/deliver", label: "Open the decision" };
-  return { href: "/deliver", label: "Read the decision record" };
+  if (!workspace.obs.length) return { href: "/model", label: "Put the hours on the file" };
+  if (!workspace.runs.some((run) => run.type === "forecast")) return { href: "/predict", label: "Forecast the next day" };
+  if (!workspace.runs.some((run) => run.type === "optimization")) return { href: "/optimize", label: "See what fits" };
+  if (!workspace.decisions.length) return { href: "/deliver", label: "Ask for a decision" };
+  return { href: "/deliver", label: "Read the decision" };
 }
 
 /** 1-based step the case is waiting on. 0 means the recorded path is complete. */

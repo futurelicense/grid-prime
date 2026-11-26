@@ -12,11 +12,11 @@ import { Field, FormError, QuietButton, Submit, useFormError } from "./forms";
 import { useWorkspace } from "./providers";
 
 const SECTIONS = [
-  { id: "situation", label: "Situation", detail: "What the case can support right now" },
-  { id: "review", label: "Review", detail: "Accept or return, with a reason" },
-  { id: "outcomes", label: "Outcomes", detail: "What happened after an accepted plan" },
-  { id: "explain", label: "Explain", detail: "Describe a stored run, or abstain" },
-  { id: "record", label: "Record", detail: "Audit, export, and the brief" },
+  { id: "situation", label: "Where it stands", detail: "What this file can support right now." },
+  { id: "review", label: "Accept or return", detail: "A reviewer writes the reason. The number does not decide." },
+  { id: "outcomes", label: "What happened", detail: "After acceptance, record what was observed." },
+  { id: "explain", label: "Read a number", detail: "A reading describes a stored result, or it abstains." },
+  { id: "record", label: "The record", detail: "The activity, the export, and the brief." },
 ];
 
 export function DeliverChapter() {
@@ -32,9 +32,9 @@ export function DeliverChapter() {
 
   return (
     <Chapter
-      number="04"
-      title="Deliver"
-      lede="The number does not become an action by itself. A reviewer writes why it was accepted or sent back."
+      number="4"
+      title="Who agreed"
+      lede="A person accepts or returns the plan and writes why. Later, someone records what happened."
       sections={SECTIONS}
       current={section}
       onChange={setSection}

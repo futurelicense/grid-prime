@@ -17,28 +17,33 @@ export function Chapter({
   onChange: (id: string) => void;
   children: React.ReactNode;
 }) {
+  const active = sections.find((section) => section.id === current);
   return (
-    <div className="grid items-start gap-12 lg:grid-cols-[240px_minmax(0,1fr)]">
-      <div>
-        <p className="kicker">Stage {number}</p>
-        <h1 className="mt-2 font-serif text-5xl leading-none">{title}</h1>
-        <p className="mt-4 text-sm leading-6 text-muted">{lede}</p>
-        <div className="mt-8 border-t border-line">
-          {sections.map((section, index) => (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => onChange(section.id)}
-              className={`block w-full border-b border-line py-3 text-left ${current === section.id ? "text-pine" : ""}`}
-            >
-              <div className="text-xs text-muted">0{index + 1}</div>
-              <div className="font-serif text-xl">{section.label}</div>
-              <div className="text-sm text-muted">{section.detail}</div>
-            </button>
-          ))}
+    <div>
+      <p className="kicker">Step {number} of 4</p>
+      <h1 className="mt-2 font-serif text-5xl leading-none">{title}</h1>
+      <p className="mt-4 max-w-2xl text-lg leading-8">{lede}</p>
+      {sections.length > 1 ? (
+        <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label={title}>
+          {sections.map((section) => {
+            const selected = current === section.id;
+            return (
+              <button
+                key={section.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => onChange(section.id)}
+                className={selected ? "btn" : "btn quiet"}
+              >
+                {section.label}
+              </button>
+            );
+          })}
         </div>
-      </div>
-      <div className="min-w-0">{children}</div>
+      ) : null}
+      {active ? <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{active.detail}</p> : null}
+      <div className="mt-8 min-w-0">{children}</div>
     </div>
   );
 }
